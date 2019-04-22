@@ -42,9 +42,9 @@ func (client *Client) SearchPullRequests(project *Project, filterParams map[stri
 		return
 	}
 
-    // TODO(srt32): how we properly encode the passed in filters
-    path := fmt.Sprintf("search/issues?per_page=%d&q=is:pr+repo:%s/%s", project.Owner, project.Name, perPage(limit, 100))
-    if filterParams != nil {
+	// TODO(srt32): how we properly encode the passed in filters
+	path := fmt.Sprintf("search/issues?per_page=%d&q=is:pr+repo:%s/%s", project.Owner, project.Name, perPage(limit, 100))
+	if filterParams != nil {
 		query := url.Values{}
 		for key, value := range filterParams {
 			switch v := value.(type) {
@@ -52,12 +52,35 @@ func (client *Client) SearchPullRequests(project *Project, filterParams map[stri
 				query.Add(key, v)
 			}
 		}
-        path += "+is:" + query.Encode()
+		path += "+is:" + query.Encode()
 	}
 
-    // TODO(srt32): do the fetch
+	pulls = []PullRequest{}
+	var res *simpleResponse
 
-	return []PullRequest{}, nil
+	for path != "" {
+		res, err = api.GetFile(path, draftsType)
+		if err = checkStatus(200, "fetching pull requests", res, err); err != nil {
+			return
+		}
+		path = res.Link("next")
+
+		pullsPage := []PullRequest{}
+		if err = res.Unmarshal(&pullsPage); err != nil {
+			return
+		}
+		for _, pr := range pullsPage {
+			if filter == nil || filter(&pr) {
+				pulls = append(pulls, pr)
+				if limit > 0 && len(pulls) == limit {
+					path = ""
+					break
+				}
+			}
+		}
+	}
+
+	return
 }
 
 func (client *Client) FetchPullRequests(project *Project, filterParams map[string]interface{}, limit int, filter func(*PullRequest) bool) (pulls []PullRequest, err error) {

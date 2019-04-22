@@ -220,6 +220,8 @@ func listPulls(cmd *Command, args *Args) {
 		filters["team-review-requested"] = args.Flag.Value("--team-review-requested")
 	}
 
+	pulls := []github.PullRequest{}
+
 	if filters["team-review-requested"] != nil {
 		pulls, err := gh.SearchPullRequests(project, filters, flagPullRequestLimit, func(pr *github.PullRequest) bool {
 			return !(onlyMerged && pr.MergedAt.IsZero())
