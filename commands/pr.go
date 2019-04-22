@@ -14,7 +14,7 @@ var (
 	cmdPr = &Command{
 		Run: printHelp,
 		Usage: `
-pr list [-s <STATE>] [-h <HEAD>] [-b <BASE>] [-o <SORT_KEY> [-^]] [-f <FORMAT>] [-L <LIMIT>]
+pr list [-s <STATE>] [-h <HEAD>] [-b <BASE>] [-o <SORT_KEY> [-^]] [-f <FORMAT>] [-L <LIMIT>] [-t <TEAM>]
 pr checkout <PR-NUMBER> [<BRANCH>]
 `,
 		Long: `Manage GitHub Pull Requests for the current repository.
@@ -39,6 +39,9 @@ pr checkout <PR-NUMBER> [<BRANCH>]
 
 	-b, --base <BRANCH>
 		Show pull requests based off the specified <BRANCH>.
+
+	-t, --team-review-requested <TEAM>
+		Show pull requests with a review requested from the specified <TEAM>
 
 	-f, --format <FORMAT>
 		Pretty print the list of pull requests using format <FORMAT> (default:
@@ -217,7 +220,7 @@ func listPulls(cmd *Command, args *Args) {
 		filters["team-review-requested"] = args.Flag.Value("--team-review-requested")
 	}
 
-	if filters["team-review-requested"] != "" {
+	if filters["team-review-requested"] != nil {
 		pulls, err := gh.SearchPullRequests(project, filters, flagPullRequestLimit, func(pr *github.PullRequest) bool {
 			return !(onlyMerged && pr.MergedAt.IsZero())
 		})
