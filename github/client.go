@@ -36,6 +36,10 @@ type Client struct {
 	Host *Host
 }
 
+func (client *Client) SearchPullRequests(project *Project, filterParams map[string]interface{}, limit int, filter func(*PullRequest) bool) (pulls []PullRequest, err error) {
+	return []PullRequest{}, nil
+}
+
 func (client *Client) FetchPullRequests(project *Project, filterParams map[string]interface{}, limit int, filter func(*PullRequest) bool) (pulls []PullRequest, err error) {
 	api, err := client.simpleApi()
 	if err != nil {

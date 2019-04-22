@@ -213,9 +213,19 @@ func listPulls(cmd *Command, args *Args) {
 		flagPullRequestFormat = "%pC%>(8)%i%Creset  %t%  l%n"
 	}
 
-	pulls, err := gh.FetchPullRequests(project, filters, flagPullRequestLimit, func(pr *github.PullRequest) bool {
-		return !(onlyMerged && pr.MergedAt.IsZero())
-	})
+	if args.Flag.HasReceived("--reviews-requested") {
+		filters["reviews-requested"] = args.Flag.Value("--reviews-requested")
+	}
+
+	if filters["reviews-requested"] != "" {
+		pulls, err := gh.SearchPullRequests(project, filters, flagPullRequestLimit, func(pr *github.PullRequest) bool {
+			return !(onlyMerged && pr.MergedAt.IsZero())
+		})
+	} else {
+		pulls, err := gh.FetchPullRequests(project, filters, flagPullRequestLimit, func(pr *github.PullRequest) bool {
+			return !(onlyMerged && pr.MergedAt.IsZero())
+		})
+	}
 	utils.Check(err)
 
 	colorize := colorizeOutput(args.Flag.HasReceived("--color"), args.Flag.Value("--color"))
