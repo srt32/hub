@@ -37,6 +37,26 @@ type Client struct {
 }
 
 func (client *Client) SearchPullRequests(project *Project, filterParams map[string]interface{}, limit int, filter func(*PullRequest) bool) (pulls []PullRequest, err error) {
+	api, err := client.simpleApi()
+	if err != nil {
+		return
+	}
+
+    // TODO(srt32): how we properly encode the passed in filters
+    path := fmt.Sprintf("search/issues?per_page=%d&q=is:pr+repo:%s/%s", project.Owner, project.Name, perPage(limit, 100))
+    if filterParams != nil {
+		query := url.Values{}
+		for key, value := range filterParams {
+			switch v := value.(type) {
+			case string:
+				query.Add(key, v)
+			}
+		}
+        path += "+is:" + query.Encode()
+	}
+
+    // TODO(srt32): do the fetch
+
 	return []PullRequest{}, nil
 }
 

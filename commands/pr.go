@@ -213,11 +213,11 @@ func listPulls(cmd *Command, args *Args) {
 		flagPullRequestFormat = "%pC%>(8)%i%Creset  %t%  l%n"
 	}
 
-	if args.Flag.HasReceived("--reviews-requested") {
-		filters["reviews-requested"] = args.Flag.Value("--reviews-requested")
+	if args.Flag.HasReceived("--team-review-requested") {
+		filters["team-review-requested"] = args.Flag.Value("--team-review-requested")
 	}
 
-	if filters["reviews-requested"] != "" {
+	if filters["team-review-requested"] != "" {
 		pulls, err := gh.SearchPullRequests(project, filters, flagPullRequestLimit, func(pr *github.PullRequest) bool {
 			return !(onlyMerged && pr.MergedAt.IsZero())
 		})
