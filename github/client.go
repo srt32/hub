@@ -43,18 +43,20 @@ func (client *Client) SearchPullRequests(project *Project, filterParams map[stri
 	}
 
 	// TODO(srt32): how we properly encode the passed in filters
-	path := fmt.Sprintf("search/issues?per_page=%d&q=is:pr+repo:%s/%s", project.Owner, project.Name, perPage(limit, 100))
+	path := fmt.Sprintf("search/issues?q=is:pr+repo:%s/%s", project.Owner, project.Name)
 	if filterParams != nil {
-		query := url.Values{}
 		for key, value := range filterParams {
 			switch v := value.(type) {
 			case string:
-				query.Add(key, v)
+				path += "+" + key + ":" + v
 			}
 		}
-		path += "+is:" + query.Encode()
 	}
 
+	// TODO(srt32): need to sort out difference between
+	// https://developer.github.com/v3/search/#search-issues-and-pull-requests
+	// https://developer.github.com/v3/pulls
+	// formatting code depends on fields not in the search response
 	pulls = []PullRequest{}
 	var res *simpleResponse
 
@@ -65,11 +67,16 @@ func (client *Client) SearchPullRequests(project *Project, filterParams map[stri
 		}
 		path = res.Link("next")
 
-		pullsPage := []PullRequest{}
+		type PullsPage struct {
+			Items []PullRequest
+		}
+		pullsPage := PullsPage{}
+
 		if err = res.Unmarshal(&pullsPage); err != nil {
 			return
 		}
-		for _, pr := range pullsPage {
+
+		for _, pr := range pullsPage.Items {
 			if filter == nil || filter(&pr) {
 				pulls = append(pulls, pr)
 				if limit > 0 && len(pulls) == limit {

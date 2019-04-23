@@ -198,11 +198,12 @@ func listPulls(cmd *Command, args *Args) {
 		filters["head"] = head
 	}
 
-	if args.Flag.Bool("--sort-ascending") {
-		filters["direction"] = "asc"
-	} else {
-		filters["direction"] = "desc"
-	}
+	// TODO(srt32): fix to work with search
+	// if args.Flag.Bool("--sort-ascending") {
+	// 	filters["direction"] = "asc"
+	// } else {
+	// 	filters["direction"] = "desc"
+	// }
 
 	onlyMerged := false
 	if filters["state"] == "merged" {
@@ -223,11 +224,11 @@ func listPulls(cmd *Command, args *Args) {
 	pulls := []github.PullRequest{}
 
 	if filters["team-review-requested"] != nil {
-		pulls, err := gh.SearchPullRequests(project, filters, flagPullRequestLimit, func(pr *github.PullRequest) bool {
+		pulls, err = gh.SearchPullRequests(project, filters, flagPullRequestLimit, func(pr *github.PullRequest) bool {
 			return !(onlyMerged && pr.MergedAt.IsZero())
 		})
 	} else {
-		pulls, err := gh.FetchPullRequests(project, filters, flagPullRequestLimit, func(pr *github.PullRequest) bool {
+		pulls, err = gh.FetchPullRequests(project, filters, flagPullRequestLimit, func(pr *github.PullRequest) bool {
 			return !(onlyMerged && pr.MergedAt.IsZero())
 		})
 	}
